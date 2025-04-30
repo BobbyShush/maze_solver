@@ -51,7 +51,7 @@ class Tests(unittest.TestCase):
 def run_tests():
     win = Window(800, 600)
     # insert visual tests here
-    visual_test_break_walls_r(win)
+    visual_test_solve(win)
     win.wait_for_close()
 
 def test_draw_line(win): # visual test
@@ -99,7 +99,10 @@ def visual_test_break_walls_r(win):
     maze._break_entrance_and_exit()
     maze._break_walls_r(0, 0)
     
+def visual_test_solve(win):
+    maze = Maze(50, 50, 8, 6, 70, 70, win)
+    print(maze.solve())
 
 if __name__ == "__main__":
     # run_tests() # Uncomment to run visual tests
-    unittest.main() # Uncomment for logic tests
+    # unittest.main() # Uncomment for logic tests

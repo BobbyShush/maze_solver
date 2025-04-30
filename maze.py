@@ -25,6 +25,9 @@ class Maze:
         self._create_cells()
         if seed:
             self.seed = random.seed(seed)
+        self._break_entrance_and_exit()
+        self._break_walls_r(0, 0)
+        self._reset_cells_visited()
 
     def _create_cells(self):
         self._cells = []
@@ -82,12 +85,7 @@ class Maze:
     def _travel(self, i, j, dir):
         current = self._cells[i][j]
         going_to = self._cells[dir[1][0]][dir[1][1]]
-        wall_pairs = {
-            "north": ("has_top_wall", "has_bottom_wall"),
-            "south": ("has_bottom_wall", "has_top_wall"),
-            "east": ("has_right_wall", "has_left_wall"),
-            "west": ("has_left_wall", "has_right_wall")
-        }
+        wall_pairs = self._get_wall_pairs()
         has_wall = wall_pairs[dir[0]]
         setattr(current, has_wall[0], False)
         setattr(going_to, has_wall[1], False)
@@ -95,7 +93,43 @@ class Maze:
         self._draw_cell(dir[1][0], dir[1][1])
         self._break_walls_r(dir[1][0], dir[1][1])
 
+    def _get_wall_pairs(self):
+        return {
+            "north": ("has_top_wall", "has_bottom_wall"),
+            "south": ("has_bottom_wall", "has_top_wall"),
+            "east": ("has_right_wall", "has_left_wall"),
+            "west": ("has_left_wall", "has_right_wall")
+        }
+
     def _reset_cells_visited(self):
         for row in self._cells:
             for cell in row:
-                cell.visited = False    
+                cell.visited = False
+
+    def solve(self):
+        return self._solve_r(0, 0)
+
+    def _solve_r(self, i, j):
+        self._animate()
+        current_cell = self._cells[i][j]
+        end_coords = (
+            len(self._cells) - 1,
+            len(self._cells[len(self._cells) - 1]) - 1,
+        )
+        current_cell.visited = True
+        if (i, j) == end_coords:
+            return True
+        
+        wall_pairs = self._get_wall_pairs()
+        for dir, coords in self._get_neighbors(i, j).items():
+            if coords:
+                neighbor_cell = self._cells[coords[0]][coords[1]]
+                if (not neighbor_cell.visited 
+                and not getattr(current_cell, wall_pairs[dir][0]) 
+                and not getattr(neighbor_cell, wall_pairs[dir][1])):
+                    current_cell.draw_move(neighbor_cell)
+                    evaluate = self._solve_r(coords[0], coords[1])
+                    if evaluate == True:
+                        return True
+                    current_cell.draw_move(neighbor_cell, True)
+        return False
